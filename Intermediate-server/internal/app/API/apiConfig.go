@@ -6,7 +6,13 @@ import (
 )
 
 type ApiServer struct {
-	PORT string
+	port string
+}
+
+func NewApiServer(port string) *ApiServer {
+	return &ApiServer{
+		port: port,
+	}
 }
 
 func (apisrv *ApiServer) Init() error {
@@ -14,7 +20,7 @@ func (apisrv *ApiServer) Init() error {
 	http.HandleFunc("/api/add_task", addtask.HandleAddTask)
 
 	// Initing Server
-	err := http.ListenAndServe(apisrv.PORT, nil)
+	err := http.ListenAndServe(apisrv.port, nil)
 	if err != nil {
 		return err
 	}
