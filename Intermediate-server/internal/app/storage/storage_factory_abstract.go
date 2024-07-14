@@ -1,6 +1,8 @@
 package storage
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+)
 
 type IStorage interface{}
 

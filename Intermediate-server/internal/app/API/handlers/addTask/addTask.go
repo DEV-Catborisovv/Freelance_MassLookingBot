@@ -68,33 +68,46 @@ func HandleAddTask(w http.ResponseWriter, r *http.Request) {
 
 	tasksStorage, ok := storageInterface.(*storage.TasksPostgresStorage)
 	if !ok {
-		logger.Message(fmt.Sprintf("Can't cast task's storage interface to TasksPostgresStorage object: %s", err))
+		logger.Message(fmt.Sprintf("Can't cast tasks storage interface to TasksPostgresStorage object: %s", err))
 		errorWriter.WriteError(w, httperrors.InternalServerError)
 		return
 	}
 
 	ctx := context.Background()
-	modelTask := models.Task{}
-
-	newTaskId, err := tasksStorage.Add(ctx, modelTask)
+	newTaskId, err := tasksStorage.Add(ctx, models.Task{
+		Status: "Created",
+	})
 	if err != nil {
 		logger.Message(fmt.Sprintf("Can't create new task: %s", err))
 		errorWriter.WriteError(w, httperrors.InternalServerError)
 		return
 	}
 
-	// Returning response
+	// Creating and casting to telegramapiconfigs storage
 
-	resp := response{
-		task_id: newTaskId,
-	}
-	respJson, err := json.Marshal(resp)
-
+	TelegramApiConfigsStorage, err := storage.GetStorage(storage.StorageTelegramApiConfigs)
 	if err != nil {
-		logger.Message(fmt.Sprintf("Error with marshal response: %s", err))
+		logger.Message(fmt.Sprintf("Can't get storage interface from storage-fabric: %s", err))
+		errorWriter.WriteError(w, httperrors.InternalServerError)
+	}
+
+	telegramApiConfigsStorage, ok := TelegramApiConfigsStorage.(*storage.TelegramApiConfigsStorage)
+	if !ok {
+		logger.Message(fmt.Sprintf("Can't cast telegramApiConfigs storage interface to telegramApiConfigsStorage object: %s", err))
 		errorWriter.WriteError(w, httperrors.InternalServerError)
 		return
 	}
 
-	w.Write(respJson)
+	ctx = context.Background()
+	_, err = telegramApiConfigsStorage.Add(ctx, models.TelegramApiConfig{
+		TaskId:   newTaskId,
+		API_ID:   req.API_ID,
+		API_HASH: req.API_HASH,
+	})
+
+	if err != nil {
+		logger.Message(fmt.Sprintf("Error with add telegramApiConfig to storage: %s", err))
+		errorWriter.WriteError(w, httperrors.InternalServerError)
+		return
+	}
 }

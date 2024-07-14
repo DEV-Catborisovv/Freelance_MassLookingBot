@@ -21,7 +21,13 @@ var (
 
 func getSingleTelegramApiConfigsInstance() *TelegramApiConfigsStorage {
 	onceTelegramApiConfigs.Do(func() {
+		dbConn, err := getSingleDatabaseInstance()
+		if err != nil {
+			panic(err)
+		}
+
 		instanceOfTelegramApiConfigs = &TelegramApiConfigsStorage{}
+		instanceOfTelegramApiConfigs.db = dbConn
 	})
 	return instanceOfTelegramApiConfigs
 }
@@ -68,7 +74,7 @@ func (s *TelegramApiConfigsStorage) Add(ctx context.Context, telegramApiConfig m
 	defer conn.Close()
 
 	var returnedId int
-	row := conn.QueryRowContext(ctx, "INSERT INTO telegram_api_configs (task_id, API_ID, API_HASH) VALUES ('$1', '$2', '$3') RETURNING id", telegramApiConfig.TaskId, telegramApiConfig.API_ID, telegramApiConfig.API_HASH)
+	row := conn.QueryRowContext(ctx, "INSERT INTO telegram_api_configs (task_id, API_ID, API_HASH) VALUES ($1, $2, $3) RETURNING id", telegramApiConfig.TaskId, telegramApiConfig.API_ID, telegramApiConfig.API_HASH)
 
 	if err := row.Err(); err != nil {
 		return 0, err

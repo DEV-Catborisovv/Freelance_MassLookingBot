@@ -1,9 +1,6 @@
 package addtask
 
 type request struct {
-	name string `json:"name"`
-}
-
-type response struct {
-	task_id int `json:"task_id"`
+	API_ID   string `json:"api_id"`
+	API_HASH string `json:"api_hash"`
 }

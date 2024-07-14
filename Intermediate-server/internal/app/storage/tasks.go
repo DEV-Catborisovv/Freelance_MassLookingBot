@@ -22,7 +22,13 @@ var (
 
 func getSingleTasksInstance() *TasksPostgresStorage {
 	onceInstanceOfTasks.Do(func() {
+		dbConn, err := getSingleDatabaseInstance()
+		if err != nil {
+			panic(err)
+		}
+
 		instanceOfTasks = &TasksPostgresStorage{}
+		instanceOfTasks.db = dbConn
 	})
 	return instanceOfTasks
 }
@@ -67,7 +73,7 @@ func (s *TasksPostgresStorage) Add(ctx context.Context, task models.Task) (int, 
 	defer conn.Close()
 
 	var returnedId int
-	row := conn.QueryRowxContext(ctx, "INSERT INTO tasks (name, status) VALUES ('$1', '$2') RETURNING id", task.Name, task.Status)
+	row := conn.QueryRowxContext(ctx, "INSERT INTO tasks (status) VALUES ($1) RETURNING id", task.Status)
 
 	if err := row.Err(); err != nil {
 		return 0, err
@@ -82,7 +88,6 @@ func (s *TasksPostgresStorage) Add(ctx context.Context, task models.Task) (int, 
 
 type dbTask struct {
 	ID        int       `db:"id"`
-	Name      string    `db:"name"`
 	Status    string    `db:"status"`
 	CreaednAt time.Time `db:"creation_at"`
 	UpdatedAt time.Time `db:"updated_at"`
