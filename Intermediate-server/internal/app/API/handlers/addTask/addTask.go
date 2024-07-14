@@ -3,6 +3,7 @@ package addtask
 import (
 	"Freelance_MassLookingBot_Intermediate-server/internal/app/API/middlewares"
 	"Freelance_MassLookingBot_Intermediate-server/internal/app/models"
+	"Freelance_MassLookingBot_Intermediate-server/internal/app/pyrunner"
 	"Freelance_MassLookingBot_Intermediate-server/internal/app/storage"
 	"Freelance_MassLookingBot_Intermediate-server/pkg/httperrors"
 	"context"
@@ -77,6 +78,7 @@ func HandleAddTask(w http.ResponseWriter, r *http.Request) {
 	newTaskId, err := tasksStorage.Add(ctx, models.Task{
 		Status: "Created",
 	})
+
 	if err != nil {
 		logger.Message(fmt.Sprintf("Can't create new task: %s", err))
 		errorWriter.WriteError(w, httperrors.InternalServerError)
@@ -110,4 +112,9 @@ func HandleAddTask(w http.ResponseWriter, r *http.Request) {
 		errorWriter.WriteError(w, httperrors.InternalServerError)
 		return
 	}
+
+	// Create task
+
+	pyRunner := pyrunner.NewPyRunner(req.API_ID, req.API_HASH)
+	pyRunner.Run()
 }

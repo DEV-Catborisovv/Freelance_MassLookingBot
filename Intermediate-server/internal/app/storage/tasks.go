@@ -86,6 +86,19 @@ func (s *TasksPostgresStorage) Add(ctx context.Context, task models.Task) (int, 
 	return returnedId, nil
 }
 
+func (s *TasksPostgresStorage) UpdateStatus(ctx context.Context, id int, status string) error {
+	conn, err := s.db.Connx(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if _, err := conn.QueryxContext(ctx, `UPDATE telegram_api_configs SET status = $1 WHERE id = $2`, status, id); err != nil {
+		return err
+	}
+	return nil
+}
+
 type dbTask struct {
 	ID        int       `db:"id"`
 	Status    string    `db:"status"`
