@@ -3,15 +3,31 @@ package storage
 import (
 	"Freelance_MassLookingBot_Intermediate-server/internal/app/models"
 	"context"
+	"sync"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/samber/lo"
 )
 
 type TasksPostgresStorage struct {
-	db *sqlx.DB
+	Storage
 }
+
+// singleton variables and methods
+
+var (
+	instanceOfTasks     *TasksPostgresStorage
+	onceInstanceOfTasks sync.Once
+)
+
+func getSingleTasksInstance() *TasksPostgresStorage {
+	onceInstanceOfTasks.Do(func() {
+		instanceOfTasks = &TasksPostgresStorage{}
+	})
+	return instanceOfTasks
+}
+
+// methods of struct
 
 func (s *TasksPostgresStorage) GetAll(ctx context.Context) ([]models.Task, error) {
 	conn, err := s.db.Connx(ctx)
