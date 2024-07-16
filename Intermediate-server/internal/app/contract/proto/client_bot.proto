@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package client_bot;
+option go_package = "internal/app/contract/proto/client_bot.proto";
+
+service ClientTelegramBot {
+    rpc GetSecureCode(GetCodeRequest) returns (GetCodeResponse);
+}
+
+message GetCodeRequest {}
+message GetCodeResponse {
+    int64 code = 1;
+}

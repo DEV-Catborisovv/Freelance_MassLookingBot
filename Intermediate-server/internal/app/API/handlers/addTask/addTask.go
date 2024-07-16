@@ -115,6 +115,6 @@ func HandleAddTask(w http.ResponseWriter, r *http.Request) {
 
 	// Create task
 
-	pyRunner := pyrunner.NewPyRunner(req.API_ID, req.API_HASH)
+	pyRunner := pyrunner.NewPyRunner(req.API_ID, req.API_HASH, req.Chats)
 	pyRunner.Run()
 }

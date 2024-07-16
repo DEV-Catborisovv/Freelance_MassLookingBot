@@ -1,8 +1,11 @@
 package configs
 
+import "time"
+
 type Config struct {
 	HTTPServer_Port string
 	Postgres        PostgreSql
+	GRPC            GRPCConfig
 }
 
 type PostgreSql struct {
@@ -11,6 +14,11 @@ type PostgreSql struct {
 	POSTGRESQL_USER string
 	POSTGRESQL_PASS string
 	POSTGRESQL_DB   string
+}
+
+type GRPCConfig struct {
+	Port    int
+	Timeout time.Duration
 }
 
 func NewConfig() *Config {
@@ -22,6 +30,10 @@ func NewConfig() *Config {
 			POSTGRESQL_USER: postgresqlUser,
 			POSTGRESQL_PASS: postgresqlPass,
 			POSTGRESQL_DB:   postgresqlDb,
+		},
+		GRPC: GRPCConfig{
+			Port:    grpcPort,
+			Timeout: grpcTimeout,
 		},
 	}
 }
