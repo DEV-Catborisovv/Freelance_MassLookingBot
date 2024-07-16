@@ -1,46 +1,65 @@
 from telethon import TelegramClient, types, functions
-from telethon.errors import SessionPasswordNeededError
+from telethon.errors import SessionPasswordNeededError, FloodWaitError
+from telethon.sessions import StringSession
+
 import sys
 import asyncio
+import time
+
+session_string = ""
 
 async def main(api_id, api_hash, phone_number, listofchats):
-    client = TelegramClient(f"./python/masslook_script/sessions/{phone_number}.session", api_id, api_hash)
+    client = TelegramClient(StringSession(session_string), api_id, api_hash)
     
     await client.connect()
 
     if not await client.is_user_authorized():
         try:
             await client.send_code_request(phone_number)
-            code = input('Enter the code you received: ')
+            print('Enter the code you received: ', flush=True)
+            code = sys.stdin.readline().strip()
             try:
                 await client.sign_in(phone_number, code)
+                
+                print(code)
             except SessionPasswordNeededError:
-                password = input('Your 2FA password: ')
+                print('Your 2FA password: ', flush=True)
+                password = sys.stdin.readline().strip()
                 await client.sign_in(password=password)
         except Exception as e:
             print(f"Failed to authenticate: {e}")
-            await client.disconnect()
+            await client.disconnect()            
             return
 
-    # Преобразуем список чатов в множество для быстрого поиска
+    # Convert list of chats to a set for fast lookup
     chat_set = set(listofchats)
 
-    async for dialog in client.iter_dialogs(limit=500):
-        if dialog.is_group and dialog.name in chat_set:
-            print(f"Processing chat: {dialog.name}")
-            async for user in client.iter_participants(entity=dialog.entity, limit=1000):
-                if (
-                    not user.stories_unavailable and 
-                    not user.stories_hidden and 
-                    user.stories_max_id
-                ):
-                    res = await client(
-                        functions.stories.ReadStoriesRequest(
-                            peer=user.id, 
-                            max_id=user.stories_max_id
-                        )
-                    )
-                    print(f"Viewed stories of user: {user.id} in chat: {dialog.name}")
+    try:
+        async for dialog in client.iter_dialogs(limit=500):
+            if dialog.is_group and dialog.name in chat_set:
+                print(f"Processing chat: {dialog.name}")
+                async for user in client.iter_participants(entity=dialog.entity, limit=1000):
+                    if (
+                        not user.stories_unavailable and 
+                        not user.stories_hidden and 
+                        user.stories_max_id
+                    ):
+                        try:
+                            res = await client(
+                                functions.stories.ReadStoriesRequest(
+                                    peer=user.id, 
+                                    max_id=user.stories_max_id
+                                )
+                            )
+                            print(f"Viewed stories of user: {user.id} in chat: {dialog.name}")
+                            time.sleep(5)  # Sleep to avoid rate limiting
+                        except FloodWaitError as e:
+                            print(f"Rate limited. Sleeping for {e.seconds} seconds.")
+                            time.sleep(e.seconds)
+                        except Exception as e:
+                            print(f"Failed to view stories for user {user.id}: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     await client.disconnect()
 

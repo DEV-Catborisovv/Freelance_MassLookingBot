@@ -2,6 +2,7 @@ package api
 
 import (
 	addtask "Freelance_MassLookingBot_Intermediate-server/internal/app/API/handlers/addTask"
+	addverificationcode "Freelance_MassLookingBot_Intermediate-server/internal/app/API/handlers/addVerificationCode"
 	"net/http"
 )
 
@@ -18,6 +19,7 @@ func NewApiServer(port string) *ApiServer {
 func (apisrv *ApiServer) Init() error {
 	// Adding Handlers For Patterns
 	http.HandleFunc("/api/add_task", addtask.HandleAddTask)
+	http.HandleFunc("/api/verify", addverificationcode.HandleAddingVerificationCode)
 
 	// Initing Server
 	err := http.ListenAndServe(apisrv.port, nil)

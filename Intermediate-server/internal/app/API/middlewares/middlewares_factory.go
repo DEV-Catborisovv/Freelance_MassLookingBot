@@ -12,7 +12,7 @@ func GetMiddleware(middlewareType string) (IMiddleware, error) {
 		return NewLoggerMiddleware(), nil
 	case MiddlewareMethodChecker:
 		return NewMethodCheckerMiddleware(), nil
-	case MiddlewareErrorWriter:
-		return NewErrorWriterMiddleware(), nil
+	case MiddlewareStatusWriter:
+		return NewStatusWriterMiddleware(), nil
 	}
 }
