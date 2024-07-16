@@ -61,6 +61,13 @@ async def main(api_id, api_hash, phone_number, listofchats):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+    # Send a message to "Saved Messages" upon completion
+    try:
+        await client.send_message('me', 'Script has completed successfully.')
+        print("Sent completion message to Saved Messages.")
+    except Exception as e:
+        print(f"Failed to send completion message: {e}")
+
     await client.disconnect()
 
 if __name__ == "__main__":
